@@ -2,6 +2,7 @@
 - hosts: local
   vars:
    - docroot: /var/www/serversforhackers.com/public
+   - domain: serversforhackers.com
   tasks:
    - name: Install Apache2
      apt: pkg=apache2 state=installed update_cache=true
@@ -12,7 +13,7 @@
    - name: Create Web Root
      when: apache2installed|success
      file: dest={{ docroot }} mode=775 state=directory owner=root group=root
-     register:webrootcreated
+	 register:webrootcreated
      notify:
       - Reload Apache2
 	  
@@ -21,13 +22,23 @@
      register: gitinstalled	  
 	  
    - name: Deploy code from GitHub
-     when: gitinstalled|success
-     git: repo=https://github.com/rakesh635/testphp.git dest={{ docroot }} version=HEAD 
+	 when: gitinstalled|success
+	 git: repo=https://github.com/rakesh635/testphp.git dest={{ docroot }} version=HEAD 
 	 
-   - name: apache2 virtualhost on port 8081
+   - name: change document root
      lineinfile: dest=/etc/apache2/sites-available/000-default.conf regexp="^DocumentRoot /var/www/html" line="DocumentRoot {{ docroot }}" state=present
      notify:
         - Reload Apache2
+		
+   - name: create virtual host file
+     template: src=virtualhost.conf dest=/etc/apache2/sites-available/{{ domain }}.conf
+
+   - name: a2ensite {{ domain }}
+     command: a2ensite {{ domain }}
+     args:
+      creates: /etc/apache2/sites-enabled/{{ domain }}.conf
+     notify:
+      - Reload Apache2
 
   handlers:
    - name: Start Apache2
