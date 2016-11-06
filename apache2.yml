@@ -12,7 +12,7 @@
    - name: Create Web Root
      when: apache2installed|success
      file: dest={{ docroot }} mode=775 state=directory owner=root group=root
-	 register:webrootcreated
+     register:webrootcreated
      notify:
       - Reload Apache2
 	  
@@ -21,8 +21,8 @@
      register: gitinstalled	  
 	  
    - name: Deploy code from GitHub
-	 when: gitinstalled|success
-	 git: repo=https://github.com/rakesh635/testphp.git dest={{ docroot }} version=HEAD 
+     when: gitinstalled|success
+     git: repo=https://github.com/rakesh635/testphp.git dest={{ docroot }} version=HEAD 
 	 
    - name: apache2 virtualhost on port 8081
      lineinfile: dest=/etc/apache2/sites-available/000-default.conf regexp="^DocumentRoot /var/www/html" line="DocumentRoot {{ docroot }}" state=present
